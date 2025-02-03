@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: azure-pipeline-agent-config
+  namespace: jesa-med-namespace
+data:
+  AZP_URL: "https://dev.azure.com/soulredouane40"
+  AZP_POOL: "Default"
+  AZP_AGENT_NAME: "dockeragent-soul-agent"

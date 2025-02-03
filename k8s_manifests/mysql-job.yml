@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-job
+spec:
+  activeDeadlineSeconds: 1200  # 20 minutes (1200 seconds)
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "mydb"
+      restartPolicy: Never
