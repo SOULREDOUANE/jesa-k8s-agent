@@ -1,36 +1,47 @@
-#!/bin/bash
-set -e
+#!/bin/sh
 
-# Update package list and install dependencies
-apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates apt-transport-https lsb-release curl wget git jq libicu-dev unzip gosu \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Add PHP repository (SURY) for latest PHP versions
-curl -fsSL https://packages.sury.org/php/apt.gpg | tee /etc/apt/trusted.gpg.d/php.gpg > /dev/null
-echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php.list
+# Update package list
+apk update
 
 # Install PHP and required extensions
-apt-get update && apt-get install -y --no-install-recommends \
-    php-cli php-mbstring php-xml php-zip php-curl php-bcmath php-json php-mysql \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+apk add --no-cache \
+    curl \
+    libgcc \
+    libstdc++ \
+    icu-libs \
+    gcompat \
+    jq \
+    bash \
+    git \
+    php83 \
+    php83-curl \
+    php83-openssl \
+    php83-iconv \
+    php83-mbstring \
+    php83-phar \
+    php83-dom \
+    php83-tokenizer \
+    php83-xml \
+    php83-xmlwriter \
+    libc6-compat \
+    libffi-dev \
+    build-base \
 
-# Verify PHP installation
-php -v
+# Install Java 21
+apk add --no-cache openjdk21
+#--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 
 # Install Composer
-curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer \
-    && chmod +x /usr/local/bin/composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-# Install Java
-wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb \
-    && dpkg -i jdk-21_linux-x64_bin.deb \
-    && rm -f jdk-21_linux-x64_bin.deb  # Remove installer to save space
+curl -fsSL https://unofficial-builds.nodejs.org/download/release/v20.10.0/node-v20.10.0-linux-x64-musl.tar.gz | tar -xz
 
-# Install Kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
-    && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
-    && rm -f kubectl  # Remove installer
+mv node-v20.10.0-linux-x64-musl /usr/local/nodejs
+ln -s /usr/local/nodejs/bin/node /usr/bin/node
+ln -s /usr/local/nodejs/bin/npm /usr/bin/npm
 
-echo "All dependencies installed successfully!"
+# Verify installations
+echo "\nChecking installed versions:"
+php -v
+java -version
+composer --version
