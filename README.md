@@ -6,8 +6,10 @@
   - Create a **ServiceAccount** to allow Microsoft-hosted agents to create jobs in the K8s cluster.
   - Create a **Role** to specify RBAC policies.
   - Create a **RoleBinding** and link it to the Role and the ServiceAccount created.
-- **Azure Container Registry (ACR)** (PAT, registry URL) to push and pull images.
+- **Azure Container Registry (ACR)** : you weould need PAT Key, registry URL to push and pull images.
   - Recommended: Create a separate registry for better isolation and management.
+- **SonarQube** : You would need a SonarQube Access token for Code analysis
+  
 
 
 ## How to Use This Repo
