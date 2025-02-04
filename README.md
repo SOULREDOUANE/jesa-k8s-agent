@@ -88,7 +88,7 @@
 Here is the full pipeline manefist file 
   ```yaml
     trigger:
-    - main
+      - main
     resources:
       repositories:
         - repository: k8s_agent_repo          # identifier to use in checkout
@@ -199,6 +199,23 @@ Here is the full pipeline manefist file
             curl --fail http://localhost:8080/database.php || (echo "Health check failed!" && exit 1)
             docker stop test-container && docker rm test-container
           displayName: 'Run Container and Perform Health Check'
+    
+    - stage: Cleanup
+      condition: always()
+      dependsOn: Build_And_Test
+      jobs:
+      - job: CleanupResources
+        pool:
+          name: 'default'
+          demands:
+          - agent.name -equals jesa-agent
+        steps:
+        - task: Kubernetes@1
+          inputs:
+            connectionType: 'Kubernetes Service Connection'
+            kubernetesServiceEndpoint: 'k8s-cluster'
+            command: 'delete'
+            arguments: 'job $(jobName) -n $(k8sNamespace)'
   ```
 
 
