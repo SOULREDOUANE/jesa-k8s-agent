@@ -40,9 +40,9 @@ spec:
           image: docker:dind
           securityContext:
             privileged: true
-          volumeMounts:
-            - name: certs
-              mountPath: /certs
+          env:
+          - name: DOCKER_TLS_CERTDIR
+            value: /certs/client
       volumes:
         - name: certs
           emptyDir: {}
