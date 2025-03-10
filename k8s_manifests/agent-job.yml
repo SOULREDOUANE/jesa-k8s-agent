@@ -25,14 +25,10 @@ spec:
           image: soulredouane/azure-agent-php:v2
           command: ["/bin/sh", "-c"]
           args: [". /vault/secrets/login && /azp/start.sh"]
-          imagePullPolicy: Always # Never
+          imagePullPolicy: Always
           env:
             - name: DOCKER_HOST
-              value: tcp://localhost:2376
-            - name: DOCKER_TLS_VERIFY
-              value: "1"
-            - name: DOCKER_CERT_PATH
-              value: /certs/client
+              value: tcp://localhost:2375
           envFrom:
             - configMapRef:
                 name: azure-pipeline-agent-config
@@ -41,8 +37,9 @@ spec:
           securityContext:
             privileged: true
           env:
-          - name: DOCKER_TLS_CERTDIR
-            value: /certs/client
+            # Disable TLS by setting DOCKER_TLS_CERTDIR to an empty value
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
       volumes:
         - name: certs
           emptyDir: {}
