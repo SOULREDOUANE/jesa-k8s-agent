@@ -68,6 +68,8 @@ spec:
         volumeMounts:
         - name: report-volume
           mountPath: /report
+        securityContext:
+          runAsUser: 0
       volumes:
       - name: report-volume
         persistentVolumeClaim:
@@ -75,3 +77,59 @@ spec:
       restartPolicy: Never
 
 
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: download-report-job
+#   # namespace: jesa-med-ns  # Match your namespace
+# spec:
+#   template:
+#     spec:
+#       containers:
+#       - name: report-uploader
+#         image: curlimages/curl:latest  # Lightweight image with curl
+#         command: ["/bin/sh", "-c"]
+#         args:
+#         - |
+#           echo "Listing reports in /report..." && \
+#           ls -la /report/jesa-med && \
+          
+#           # Find the report file (e.g., HTML report)
+#           REPORT_FILE=$(ls /report/jesa-med/owasp-report-${REPORT_ID}/dependency-check-report.html) && \
+#           echo "Found report file: $REPORT_FILE" && \
+          
+#           # Upload the report to Azure DevOps artifacts using the REST API
+#           curl -u ":${AZP_TOKEN}" \
+#             --upload-file "$REPORT_FILE" \
+#             -H "Content-Type: application/octet-stream" \
+#             "https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_apis/build/builds/${BUILD_ID}/artifacts?artifactName=dependency-check-report&fileName=dependency-check-report.html&api-version=6.0" && \
+          
+#           echo "Report uploaded successfully"
+#         env:
+#         - name: AZP_TOKEN  # Azure DevOps PAT for authentication
+#           valueFrom:
+#             secretKeyRef:
+#               name: azure-devops-pat  # Create this secret with your PAT
+#               key: pat
+#         - name: ORGANIZATION
+#           valueFrom:
+#             configMapKeyRef:
+#               name: git-repo
+#               key: ORGANIZATION
+#         - name: PROJECT
+#           valueFrom:
+#             configMapKeyRef:
+#               name: git-repo
+#               key: PROJECT
+#         - name: REPORT_ID
+#           value: "jesa-med-187"
+#         - name: BUILD_ID  # Pass the Azure DevOps Build ID
+#           value: "187"  # owasp-report-jesa-med-187
+#         volumeMounts:
+#         - name: report-volume
+#           mountPath: /report
+#       volumes:
+#       - name: report-volume
+#         persistentVolumeClaim:
+#           claimName: dependency-check-report  # Same PVC as the dependency-check Job
+#       restartPolicy: Never
