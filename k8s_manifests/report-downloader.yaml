@@ -10,22 +10,34 @@ spec:
       - name: report-uploader
         image: curlimages/curl:latest  # Lightweight image with curl
         command: ["/bin/sh", "-c"]
-        args:
         - |
           echo "Listing reports in /report..." && \
           ls -la /report/jesa-med && \
           
-          # Find the report file (e.g., HTML report)
+          # Find the report file
           REPORT_FILE=$(ls /report/jesa-med/owasp-report-${REPORT_ID}/dependency-check-report.html) && \
           echo "Found report file: $REPORT_FILE" && \
           
-          # Upload the report to Azure DevOps artifacts using the REST API
-          curl -u ":${AZP_TOKEN}" \
-            --upload-file "$REPORT_FILE" \
-            -H "Content-Type: application/octet-stream" \
-            "https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_apis/build/builds/${BUILD_ID}/artifacts?artifactName=dependency-check-report&fileName=dependency-check-report.html&api-version=6.0" && \
+          # Copy the report to a local directory
+          mkdir -p /output/dependency-check-report && \
+          cp "$REPORT_FILE" /output/dependency-check-report/dependency-check-report.html && \
+          ls -la /output/dependency-check-report
+        # args:
+        # - |
+        #   echo "Listing reports in /report..." && \
+        #   ls -la /report/jesa-med && \
           
-          echo "Report uploaded successfully"
+        #   # Find the report file (e.g., HTML report)
+        #   REPORT_FILE=$(ls /report/jesa-med/owasp-report-${REPORT_ID}/dependency-check-report.html) && \
+        #   echo "Found report file: $REPORT_FILE" && \
+          
+        #   # Upload the report to Azure DevOps artifacts using the REST API
+        #   curl -u ":${AZP_TOKEN}" \
+        #     --upload-file "$REPORT_FILE" \
+        #     -H "Content-Type: application/octet-stream" \
+        #     "https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_apis/build/builds/${BUILD_ID}/artifacts?artifactName=dependency-check-report&fileName=dependency-check-report.html&api-version=6.0" && \
+          
+        #   echo "Report uploaded successfully"
         env:
         - name: AZP_TOKEN  # Azure DevOps PAT for authentication
           valueFrom:
@@ -47,8 +59,11 @@ spec:
             configMapKeyRef:
               name: report-config
               key: REPORT_ID
-        - name: BUILD_ID  # Pass the Azure DevOps Build ID
-          value: "$(Build.BuildId)"  # owasp-report-jesa-med-187
+        - name: BUILD_ID
+          valueFrom:
+            configMapKeyRef:
+              name: report-config
+              key: TAG
         volumeMounts:
         - name: report-volume
           mountPath: /report
