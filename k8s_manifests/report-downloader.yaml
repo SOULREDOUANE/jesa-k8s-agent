@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: download-report-pod
-  namespace: jesa-med-ns  # Match your namespace
+  # namespace: jesa-med-ns  # Match your namespace
 spec:
   containers:
   - name: report-uploader
