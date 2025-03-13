@@ -2,7 +2,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: dependency-check-job
-  namespace: owasp-dependency-check-ns
 spec:
   template:
     metadata:
@@ -21,12 +20,16 @@ spec:
       initContainers:
       - name: git-repo-downloader
         image: bitnami/git:latest
+        # command: ["/bin/sh"]
         command: ["/bin/sh","-c"]
         args:
         - |
             . /vault/secrets/login
             git clone "https://${AZP_TOKEN}@dev.azure.com/${ORGANIZATION}/${PROJECT}/_git/${REPO_NAME}" /source --branch main
             ls /source
+        # args:
+        #   - -c
+        #   - git clone "https://${AZURE_DEVOPS_PAT}@dev.azure.com/${ORGANIZATION}/${PROJECT}/_git/${REPO_NAME}" /source --branch main
         env:
         - name: ORGANIZATION
           valueFrom:
@@ -43,6 +46,11 @@ spec:
             configMapKeyRef:
               name: git-repo  # Match your ConfigMap name
               key: REPO_NAME
+        # - name: AZURE_DEVOPS_PAT
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: azure-devops-pat
+        #       key: pat
         volumeMounts:
         - name: data
           mountPath: /source
@@ -71,6 +79,8 @@ spec:
         securityContext:
           runAsUser: 0 
         volumeMounts:
+        # - name: data-volume
+        #   mountPath: /opt
         - name: data-volume
           mountPath: /usr/share/dependency-check/data
         - name: data
@@ -90,3 +100,86 @@ spec:
 
 
 
+
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: dependency-check-job
+# spec:
+#   template:
+#     spec:
+#       initContainers:
+#       - name: git-repo-downloader
+#         image: bitnami/git:latest
+#         command: ["/bin/sh"]
+#         args:
+#           - -c
+#           - git clone "https://${AZURE_DEVOPS_PAT}@dev.azure.com/${ORGANIZATION}/${PROJECT}/_git/${REPO_NAME}" /source --branch main
+#         env:
+#         - name: ORGANIZATION
+#           valueFrom:
+#             configMapKeyRef:
+#               name: git-repo
+#               key: ORGANIZATION
+#         - name: PROJECT
+#           valueFrom:
+#             configMapKeyRef:
+#               name: git-repo
+#               key: PROJECT
+#         - name: REPO_NAME
+#           valueFrom:
+#             configMapKeyRef:
+#               name: git-repo
+#               key: REPO_NAME
+#         - name: AZURE_DEVOPS_PAT
+#           valueFrom:
+#             secretKeyRef:
+#               name: azure-devops-pat
+#               key: pat
+#         volumeMounts:
+#         - name: data
+#           mountPath: /source
+#         securityContext:
+#           runAsUser: 0
+#       containers:
+#       - name: dependency-check
+#         image: owasp/dependency-check:latest
+#         command: ["/bin/sh", "-c"]
+#         args:
+#         - |
+#           echo "Starting Dependency-Check..." && \
+#           /usr/share/dependency-check/bin/dependency-check.sh \
+#             --updateonly \
+#             --nvdApiKey "${NVD_API_KEY}" \
+#             --log /report/db-update.log && \
+#           echo "Database update completed. Starting scan..." && \
+#           /usr/share/dependency-check/bin/dependency-check.sh \
+#             --scan /source \
+#             --format ALL \
+#             --project "php-azure-devops scan" \
+#             --out /report/jesa-med \
+#             --cache /tmp/cache && \
+#           echo "Scan completed. Listing reports:" && \
+#           ls -la /report
+#         env:
+#         - name: NVD_API_KEY
+#           value: "0487389a-a9d0-42ef-8c12-b95c7b6b4b90"
+#         securityContext:
+#           runAsUser: 0
+#         volumeMounts:
+#         - name: data-volume
+#           mountPath: /usr/share/dependency-check/data
+#         - name: data
+#           mountPath: /source
+#         - name: report-volume
+#           mountPath: /report
+#       volumes:
+#       - name: data-volume
+#         persistentVolumeClaim:
+#           claimName: dependency-check-data-pvc
+#       - name: report-volume
+#         persistentVolumeClaim:
+#           claimName: dependency-check-report
+#       - name: data
+#         emptyDir: {}
+#       restartPolicy: Never
