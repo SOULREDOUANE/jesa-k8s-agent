@@ -10,6 +10,7 @@ spec:
       - name: report-uploader
         image: curlimages/curl:latest  # Lightweight image with curl
         command: ["/bin/sh", "-c"]
+        args: 
         - |
           echo "Listing reports in /report..." && \
           ls -la /report/jesa-med && \
@@ -72,3 +73,5 @@ spec:
         persistentVolumeClaim:
           claimName: dependency-check-report  # Same PVC as the dependency-check Job
       restartPolicy: Never
+
+
