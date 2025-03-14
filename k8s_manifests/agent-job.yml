@@ -11,6 +11,7 @@ spec:
       labels:
         app: azp-agent
       annotations:
+        vault.hashicorp.com/agent-pre-populate-only: "true"
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "app-role"
         vault.hashicorp.com/agent-inject-secret-login: "secret/data/login"
