@@ -23,7 +23,7 @@ spec:
       serviceAccountName: vault-access-sa
       containers:
         - name: azp-agent
-          image: soulredouane/azure-agent-php:v2
+          image: soulredouane/azure-agent-php:v3
           command: ["/bin/sh", "-c"]
           args: [". /vault/secrets/login && /azp/start.sh"]
           imagePullPolicy: Always
